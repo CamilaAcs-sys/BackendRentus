@@ -10,4 +10,10 @@ class Maintenance extends Model
 {
     use HasFactory;
     
+    function property(){
+        return $this->belongsTo(Property::class);
+    }
+    function user(){
+        return $this->belongsTo(User::class);
+    }
 }

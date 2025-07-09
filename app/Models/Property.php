@@ -9,4 +9,33 @@ class Property extends Model
 {
     use HasFactory;
 
+  function user(){
+        return $this->belongsTo(User::class);
+    }
+
+    function maintenances(){
+        return $this->hasMany(Maintenance::class);
+    }
+    function contracts(){
+        return $this->hasMany(Contract::class);
+    }
+
+    public function rentalRequests() {
+        return $this->hasMany(RentalRequest::class);
+    }
+    protected $fillable = [
+    'title',
+    'description',
+    'address',
+    'city',
+    'status',
+    'monthly_price',
+    'area_m2',
+    'num_bedrooms',
+    'num_bathrooms',
+    'included_services',
+    'publication_date',
+    'user_id',
+    'image_url'
+];
 }

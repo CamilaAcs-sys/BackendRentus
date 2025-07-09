@@ -9,4 +9,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class RentalRequest extends Model
 {
     use HasFactory;
+    public function contract(){
+        return $this->belongsTo(Contract::class);
+    }
+    public function property(){
+        return $this->hasMany(Property::class);
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }

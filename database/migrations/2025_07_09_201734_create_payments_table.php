@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('amount');
             $table->string('status');
             $table->string('payment_method');
-            $table->date('receipt_path');
+            $table->string('receipt_path');
             $table->unsignedBigInteger('contract_id')->unique();
             $table->foreign('contract_id')
             ->references('id')

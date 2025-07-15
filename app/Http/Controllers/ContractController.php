@@ -10,11 +10,7 @@ class ContractController extends Controller
 {
     public function index()
     {
-
-        // $contracts = Contract::included()->get();
-        // return response()->json($contracts);
-
-        $contracts = Contract::included()->filter()->get();
+        $contracts = Contract::included()->filter()->sort()->getOrPaginate();
         return response()->json($contracts);
     }
 

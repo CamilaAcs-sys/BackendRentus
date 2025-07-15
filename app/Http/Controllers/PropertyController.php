@@ -9,10 +9,7 @@ class PropertyController extends Controller
 {
     public function index()
     {
-        // $properties = Property::included()->get();
-        // return response()->json($properties);
-
-        $properties = Property::included()->filter()->get();
+        $properties = Property::included()->filter()->sort()->getOrPaginate();
         return response()->json($properties);
     }
 

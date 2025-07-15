@@ -9,10 +9,7 @@ class RatingController extends Controller
 {
     public function index()
     {
-        // $ratings = Rating::included()->get();
-        // return response()->json($ratings);
-
-        $ratings = Rating::included()->filter()->get();
+        $ratings = Rating::included()->filter()->sort()->getOrPaginate();
         return response()->json($ratings);
     }
 

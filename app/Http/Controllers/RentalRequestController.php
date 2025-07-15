@@ -9,10 +9,7 @@ class RentalRequestController extends Controller
 {
     public function index()
     {
-        // $rentalRequests = RentalRequest::included()->get();
-        // return response()->json($rentalRequests);
-
-        $rentalRequests = RentalRequest::included()->filter()->get();
+        $rentalRequests = RentalRequest::included()->filter()->sort()->getOrPaginate();
         return response()->json($rentalRequests);
     }
 

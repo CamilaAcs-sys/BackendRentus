@@ -9,10 +9,7 @@ class MaintenanceController extends Controller
 
     public function index()
     {
-        // $maintenances = Maintenance::included()->get();
-        // return response()->json($maintenances);
-
-        $maintenances = Maintenance::included()->filter()->get();
+        $maintenances = Maintenance::included()->filter()->sort()->getOrPaginate();
         return response()->json($maintenances);
     }
 

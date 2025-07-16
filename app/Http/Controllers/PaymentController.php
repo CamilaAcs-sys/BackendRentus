@@ -9,10 +9,7 @@ class PaymentController extends Controller
 {
     public function index()
     {
-        // $payments = Payment::included()->get();
-        // return response()->json($payments);
-
-        $payments = Payment::included()->filter()->get();
+        $payments = Payment::included()->filter()->sort()->getOrPaginate();
         return response()->json($payments);
     }
 

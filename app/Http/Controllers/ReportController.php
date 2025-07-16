@@ -9,10 +9,7 @@ class ReportController extends Controller
 {
     public function index()
     {
-        // $reports = Report::included()->get();
-        // return response()->json($reports);
-
-        $reports = Report::included()->filter()->get();
+        $reports = Report::included()->filter()->sort()->getOrPaginate();
         return response()->json($reports);
     }
 

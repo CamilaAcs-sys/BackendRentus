@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('support_validation_date');
             $table->string('accepted_by_tenant');
             $table->string('tenant_acceptance_date');
-            $table->unsignedBigInteger('property_id')->unique();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('property_id');
+            $table->unsignedBigInteger('user_id');
             $table->foreign('property_id')
             ->references('id')
             ->on('properties')

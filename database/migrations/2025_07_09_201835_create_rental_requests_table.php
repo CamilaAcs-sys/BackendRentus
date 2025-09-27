@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('rental_requests', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('contract_id')->unique();
-            $table->unsignedBigInteger('property_id')->unique();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('contract_id');
+            $table->unsignedBigInteger('property_id');
+            $table->unsignedBigInteger('user_id');
             $table->foreign('contract_id')
             ->references('id')
             ->on('contracts')

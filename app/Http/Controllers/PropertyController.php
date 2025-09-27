@@ -13,24 +13,27 @@ class PropertyController extends Controller
         return response()->json($properties);
     }
 
-    public function show(Property $property)
-    {
-        //
-    }
-
     public function edit(Property $property)
     {
         //
     }
 
+    public function show(Property $property)
+    {
+        return response()->json($property);
+    }
+
     public function update(Request $request, Property $property)
     {
-        //
+        $property->update($request->all());
+        return response()->json($property);
     }
 
     public function destroy(Property $property)
     {
-        //
+        $property->delete();
+        return response()->json(['message' => 'Propiedad eliminada con éxito']);
     }
+
 }
 

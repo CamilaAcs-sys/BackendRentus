@@ -13,23 +13,25 @@ class RentalRequestController extends Controller
         return response()->json($rentalRequests);
     }
 
-    public function show(RentalRequest $rentalRequest)
-    {
-        //
-    }
-
     public function edit(RentalRequest $rentalRequest)
     {
         //
     }
+    public function show(RentalRequest $rentalRequest)
+    {
+      return response()->json($rentalRequest);
+    }
 
     public function update(Request $request, RentalRequest $rentalRequest)
     {
-        //
+       $rentalRequest->update($request->all());
+      return response()->json($rentalRequest);
     }
 
     public function destroy(RentalRequest $rentalRequest)
     {
-        //
+       $rentalRequest->delete();
+       return response()->json(['message' => 'Solicitud de arriendo eliminada con éxito']);
     }
+
 }

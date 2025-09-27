@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('score');
             $table->string('comment');
             $table->string('date');
-            $table->unsignedBigInteger('contract_id')->unique();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('contract_id');
+            $table->unsignedBigInteger('user_id');
             $table->foreign('contract_id')
             ->references('id')
             ->on('contracts')

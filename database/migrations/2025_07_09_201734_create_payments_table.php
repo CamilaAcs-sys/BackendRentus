@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('status');
             $table->string('payment_method');
             $table->string('receipt_path');
-            $table->unsignedBigInteger('contract_id')->unique();
+            $table->unsignedBigInteger('contract_id');
             $table->foreign('contract_id')
             ->references('id')
             ->on('contracts')

@@ -1,37 +1,44 @@
-    <?php
+<?php
 
-    use Illuminate\Support\Facades\Route;
-    use App\Http\Controllers\{
-        MaintenanceController,
-        ContractController,
-        PaymentController,
-        PropertyController,
-        RatingController,
-        RentalRequestController,
-        ReportController,
-        UserController
-    };
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{
+    MaintenanceController,
+    ContractController,
+    PaymentController,
+    PropertyController,
+    RatingController,
+    RentalRequestController,
+    ReportController,
+    UserController,
+    AuthController
+};
 
-    // USERS
-    Route::apiResource('users', UserController::class);
+// ============================================
+// 🌐 API V1 BASE
+// ============================================
+Route::prefix('v1')->group(function () {
+    Route::controller(AuthController::class)->group(function () {
+        Route::post('register', 'register')->name('auth.register');
+        Route::post('login', 'login')->name('auth.login');
+    });
 
-    // PROPERTIES
-    Route::apiResource('properties', PropertyController::class);
+    Route::middleware(['jwt.auth'])->group(function () {
+        Route::controller(AuthController::class)->group(function () {
+            Route::get('profile', 'profile')->name('auth.profile');
+            Route::post('logout', 'logout')->name('auth.logout');
+            Route::post('refresh', 'refresh')->name('auth.refresh');
+        });
 
-    // CONTRACTS
-    Route::apiResource('contracts', ContractController::class);
+        Route::apiResources([
+            'users' => UserController::class,
+            'properties' => PropertyController::class,
+            'contracts' => ContractController::class,
+            'payments' => PaymentController::class,
+            'ratings' => RatingController::class,
+            'maintenances' => MaintenanceController::class,
+            'reports' => ReportController::class,
+            'rental-requests' => RentalRequestController::class,
+        ]);
+    });
+});
 
-    // PAYMENTS
-    Route::apiResource('payments', PaymentController::class);
-
-    // RATINGS
-    Route::apiResource('ratings', RatingController::class);
-
-    // MAINTENANCES
-    Route::apiResource('maintenances', MaintenanceController::class);
-
-    // REPORTS
-    Route::apiResource('reports', ReportController::class);
-
-    // RENTAL REQUESTS
-    Route::apiResource('rental-requests', RentalRequestController::class);

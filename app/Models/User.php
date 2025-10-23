@@ -2,28 +2,64 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    // Campos que se pueden asignar masivamente (por create, update, etc.)
+    use HasApiTokens, HasFactory, Notifiable;
+
+    // === JWT Methods ===
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+    // === Fillable fields ===
     protected $fillable = [
-        'name',                  // Nombre del usuario
-        'email',                 // Correo electrónico del usuario
-        'password_hash',         // Contraseña del usuario (almacenada como hash)
-        'phone',                 // Teléfono del usuario
-        'address',               // Dirección del usuario
-        'id_documento',          // Documento de identificación del usuario
-        'status',                // Estado del usuario (activo, inactivo, etc.)
-        'registration_date',     // Fecha de registro del usuario
-        'password'               // Contraseña del usuario (sin hash, se usa para autenticación)
+        'name',
+        'email',
+        'password',
+        'phone',
+        'address',
+        'id_documento',
+        'status',
+        'registration_date'
     ];
 
-    // Relaciones permitidas para ser incluidas desde la URL con ?included=
+    // === Hidden fields (para respuestas JSON) ===
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    // === Casting automático (Laravel 10+) ===
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // === Relaciones ===
+    public function properties() { return $this->hasMany(Property::class); }
+    public function contracts() { return $this->hasMany(Contract::class); }
+    public function reports() { return $this->hasMany(Report::class); }
+    public function maintenances() { return $this->hasMany(Maintenance::class); }
+    public function rentalRequest() { return $this->hasMany(RentalRequest::class); }
+    public function ratings() { return $this->hasMany(Rating::class); }
+
+    // === Filtros dinámicos ===
     protected $allowIncluded = [
         'properties',
         'contracts',
@@ -33,163 +69,57 @@ class User extends Authenticatable
         'ratings'
     ];
 
-    // Campos permitidos para ser filtrados desde la URL con ?filter[]
     protected $allowFilter = [
-        'id',
-        'name',
-        'email',
-        'phone',
-        'address',
-        'id_documento',
-        'status',
-        'registration_date'
+        'id', 'name', 'email', 'phone', 'address',
+        'id_documento', 'status', 'registration_date'
     ];
 
-    // Campos permitidos para ser ordenados desde la URL con ?sort=
     protected $allowSort = [
-        'id',
-        'name',
-        'email',
-        'phone',
-        'address',
-        'id_documento',
-        'status',
-        'registration_date'
+        'id', 'name', 'email', 'phone', 'address',
+        'id_documento', 'status', 'registration_date'
     ];
 
-    // Ocultar campos sensibles en respuestas JSON
-    protected $hidden = [
-        'password',
-        'remember_token',
-        'password_hash'
-    ];
-
-    // Convertir automáticamente ciertos campos a tipos nativos
-    protected $casts = [
-        'email_verified_at' => 'datetime'
-    ];
-
-    public function properties(){return $this->hasMany(Property::class);}
-
-    public function contracts(){return $this->hasMany(Contract::class);}
-
-    public function reports(){return $this->hasMany(Report::class);}
-
-    public function maintenances(){return $this->hasMany(Maintenance::class);}
-
-    public function rentalRequest(){return $this->hasMany(RentalRequest::class);}
-
-    public function ratings(){return $this->hasMany(Rating::class);}
-
-    /**
-     * Scope que incluye relaciones dinámicamente si están permitidas.
-     */
     public function scopeIncluded(Builder $query)
     {
-        if (empty($this->allowIncluded) || empty(request('included'))) {
-            return;
+        if (!request()->has('included')) return;
+
+        $relations = collect(explode(',', request('included')))
+            ->intersect($this->allowIncluded)
+            ->all();
+
+        if (!empty($relations)) {
+            $query->with($relations);
         }
-
-        $relations = explode(',', request('included'));
-        $allowIncluded = collect($this->allowIncluded);
-
-        foreach ($relations as $key => $relationship) {
-            if (!$allowIncluded->contains($relationship)) {
-                unset($relations[$key]);
-            }
-        }
-
-        $query->with($relations);
     }
 
-    /**
-     * Scope que aplica filtros dinámicamente a la consulta.
-     */
     public function scopeFilter(Builder $query)
     {
-        if (empty($this->allowFilter) || empty(request('filter'))) {
-            return;
-        }
+        if (!request()->has('filter')) return;
 
-        $filters = request('filter');
-        $allowFilter = collect($this->allowFilter);
-
-        foreach ($filters as $filter => $value) {
-            if ($allowFilter->contains($filter)) {
-                $query->where($filter, 'LIKE', '%' . $value . '%');
+        foreach (request('filter') as $field => $value) {
+            if (in_array($field, $this->allowFilter)) {
+                $query->where($field, 'LIKE', "%$value%");
             }
         }
     }
 
-    /**
-     * Scope que aplica ordenamiento dinámico a la consulta.
-     */
     public function scopeSort(Builder $query)
     {
-        if (empty($this->allowSort) || empty(request('sort'))) {
-            return;
-        }
+        if (!request()->has('sort')) return;
 
-        $sortFields = explode(',', request('sort'));
-        $allowSort = collect($this->allowSort);
+        foreach (explode(',', request('sort')) as $sortField) {
+            $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+            $field = ltrim($sortField, '-');
 
-        foreach ($sortFields as $sortField) {
-            $direction = 'asc';
-
-            if (substr($sortField, 0, 1) == '-') {
-                $direction = 'desc';
-                $sortField = substr($sortField, 1);
-            }
-
-            if ($allowSort->contains($sortField)) {
-                $query->orderBy($sortField, $direction);
+            if (in_array($field, $this->allowSort)) {
+                $query->orderBy($field, $direction);
             }
         }
     }
 
-    /**
-     * Scope que retorna una colección paginada si se solicita con ?perPage=X,
-     * o una colección completa si no se indica paginación.
-     */
     public function scopeGetOrPaginate(Builder $query)
     {
-        if (request('perPage')) {
-            $perPage = intval(request('perPage'));
-
-            if ($perPage) {
-                return $query->paginate($perPage);
-            }
-        }
-        return $query->get();
-    }
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $perPage = request('perPage');
+        return $perPage ? $query->paginate((int)$perPage) : $query->get();
     }
 }
